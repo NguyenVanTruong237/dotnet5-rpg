@@ -2,6 +2,8 @@ namespace dotnet5_rpg.Models
 {
     public class Character
     {
+        internal static Character getfirstordefault;
+
         public int Id { get; set; }
         public string Name { get; set; } = "Frodo";
         public int HitPoints { get; set; } = 100;
