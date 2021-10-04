@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using dotnet5_rpg.Dtos.Character;
 using dotnet5_rpg.Models;
+using System;
 
 namespace dotnet5_rpg.Services.CharacterService
 {
@@ -37,6 +38,28 @@ namespace dotnet5_rpg.Services.CharacterService
             obj.Id = Characters.Max(c => c.Id)+1;
             Characters.Add(obj);
             serviceResponse.Data = Characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateCharacterDto updateCharacter)
+        {
+            var serviceResponse = new ServiceResponse<GetCharacterDto>();
+            try
+            {
+                var obj = Characters.FirstOrDefault(c => c.Id == updateCharacter.Id);
+                obj.Name = updateCharacter.Name;
+                obj.HitPoints = updateCharacter.HitPoints;
+                obj.Strength = updateCharacter.Strength;
+                obj.Defense = updateCharacter.Defense;
+                obj.Intelligence = updateCharacter.Intelligence;
+                obj.Class = obj.Class;
+                serviceResponse.Data = _mapper.Map<GetCharacterDto>(obj);
+            }
+            catch(Exception ex)
+            {
+                serviceResponse.Success = false;
+                serviceResponse.Message = ex.Message;
+            }
             return serviceResponse;
         }
     }
