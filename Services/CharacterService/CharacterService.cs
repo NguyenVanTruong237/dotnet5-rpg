@@ -40,7 +40,6 @@ namespace dotnet5_rpg.Services.CharacterService
             serviceResponse.Data = Characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
             return serviceResponse;
         }
-
         public async Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateCharacterDto updateCharacter)
         {
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
@@ -54,6 +53,22 @@ namespace dotnet5_rpg.Services.CharacterService
                 obj.Intelligence = updateCharacter.Intelligence;
                 obj.Class = obj.Class;
                 serviceResponse.Data = _mapper.Map<GetCharacterDto>(obj);
+            }
+            catch(Exception ex)
+            {
+                serviceResponse.Success = false;
+                serviceResponse.Message = ex.Message;
+            }
+            return serviceResponse;
+        }
+        public async Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int id)
+        {
+            var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
+            try
+            {
+                var obj = Characters.First(c => c.Id == id);
+                Characters.Remove(obj);
+                serviceResponse.Data = Characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
             }
             catch(Exception ex)
             {
