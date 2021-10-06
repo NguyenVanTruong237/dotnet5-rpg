@@ -11,9 +11,27 @@ namespace dotnet5_rpg.Data
         {
             _context = context;
         }
-        public Task<ServiceResponse<string>> Login(string username, string password)
+        public async Task<ServiceResponse<string>> Login(string username, string password)
         {
-            throw new System.NotImplementedException();
+            var serviceResponse = new ServiceResponse<string>();
+            var userInObj = await _context.Users.FirstOrDefaultAsync(x => x.UserName.ToLower().Equals(username.ToLower()));
+            if(userInObj == null)
+            {
+                serviceResponse.Success = false;
+                serviceResponse.Message = "User not found.";
+            }
+            else
+                if(VerifyPasswordHash(password, userInObj.PasswordHash, userInObj.PasswordSalt) == false)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "Wrong Password";
+                }
+                else
+                {
+                    serviceResponse.Data = userInObj.Id.ToString();
+                    serviceResponse.Message = "Login success";
+                }
+            return serviceResponse;
         }
 
         public async Task<ServiceResponse<int>> Register(User user, string password)
@@ -30,7 +48,7 @@ namespace dotnet5_rpg.Data
             user.PasswordHash = passwordHash;
             user.PasswordSalt = passwordSalt;
 
-            _context.Add(user);
+            _context.Users.Add(user);
             await _context.SaveChangesAsync();
             serviceResponse.Data = user.Id;
             return serviceResponse; 
@@ -49,8 +67,25 @@ namespace dotnet5_rpg.Data
         {
             using(var hmac = new System.Security.Cryptography.HMACSHA512())
             {
-                passwordHash = hmac.Key;
-                passwordSalt = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                passwordSalt = hmac.Key;
+                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+        }
+
+        private bool VerifyPasswordHash (string password, byte[] passwordHash, byte[] passwordSalt)
+        {
+            using(var hmac = new System.Security.Cryptography.HMACSHA512(passwordSalt))
+            {
+                var computerHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+
+                for(int i = 0; i < computerHash.Length; i++)
+                {
+                    if(computerHash[i] != passwordHash[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
             }
         }
     }

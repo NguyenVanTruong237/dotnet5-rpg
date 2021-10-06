@@ -26,5 +26,15 @@ namespace dotnet5_rpg.Controllers
             }
             return Ok(serviceResponse);
         }
+        [HttpPost("Login")]
+        public async Task<ActionResult<ServiceResponse<string>>> Login (UserLoginDto request)
+        {
+            var serviceResponse = await _auRepo.Login(request.UserName, request.Password);
+            if(!serviceResponse.Success)
+            {
+                return BadRequest(serviceResponse);
+            }
+            return Ok(serviceResponse);
+        }
     }
 }

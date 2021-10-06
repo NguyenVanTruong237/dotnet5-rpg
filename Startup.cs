@@ -38,6 +38,7 @@ namespace dotnet5_rpg
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "dotnet5_rpg", Version = "v1" });
             });
             services.AddScoped<ICharacterService,CharacterService>();
+            services.AddScoped<IAuthRepository,AuthRepository>();
             services.AddAutoMapper(typeof(Startup));
         }
 
