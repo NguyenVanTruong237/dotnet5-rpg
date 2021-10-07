@@ -26,7 +26,8 @@ namespace dotnet5_rpg.Services.CharacterService
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public int GetUserId() => int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        public int GetUserId() => int.Parse(_httpContextAccessor.HttpContext.User
+                    .FindFirstValue(ClaimTypes.NameIdentifier));
         
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
@@ -38,7 +39,9 @@ namespace dotnet5_rpg.Services.CharacterService
         public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
         {
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
-            var dbCharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
+            var dbCharacter = await _context.Characters
+            .Where(c => c.User.Id == GetUserId())
+            .FirstOrDefaultAsync(c => c.Id == id);
             serviceResponse.Data = _mapper.Map<GetCharacterDto>(dbCharacter);
             return serviceResponse;
         }
@@ -46,9 +49,14 @@ namespace dotnet5_rpg.Services.CharacterService
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             Character characterNew = _mapper.Map<Character>(character);
+            characterNew.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
+
             await _context.Characters.AddAsync(characterNew);
             await _context.SaveChangesAsync();
-            serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
+            serviceResponse.Data = await _context.Characters
+            .Where(c => c.User.Id == GetUserId())
+            .Select(c => _mapper.Map<GetCharacterDto>(c))
+            .ToListAsync();
             return serviceResponse;
         }
         public async Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateCharacterDto updateCharacter)
@@ -56,7 +64,7 @@ namespace dotnet5_rpg.Services.CharacterService
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
             try
             {
-                var obj = await _context.Characters.FirstOrDefaultAsync(c => c.Id == updateCharacter.Id);
+                var obj = await _context.Characters.Where(c => c.User.Id == GetUserId()).FirstOrDefaultAsync(c => c.Id == updateCharacter.Id);
                 obj.Name = updateCharacter.Name;
                 obj.HitPoints = updateCharacter.HitPoints;
                 obj.Strength = updateCharacter.Strength;
@@ -78,10 +86,12 @@ namespace dotnet5_rpg.Services.CharacterService
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             try
             {
-                var obj = await _context.Characters.FirstAsync(c => c.Id == id);
+                var obj = await _context.Characters.Where(c => c.User.Id == GetUserId()).FirstAsync(c => c.Id == id);
                 _context.Remove(obj);
                 await _context.SaveChangesAsync();
-                serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
+                serviceResponse.Data = await _context.Characters
+                .Where(c => c.User.Id == GetUserId())
+                .Select(c => _mapper.Map<GetCharacterDto>(c)).ToListAsync();
             }
             catch(Exception ex)
             {
