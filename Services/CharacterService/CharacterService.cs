@@ -32,7 +32,10 @@ namespace dotnet5_rpg.Services.CharacterService
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-            var dbCharacters = await _context.Characters.Where(c => c.User.Id == GetUserId()).ToListAsync();
+            var dbCharacters = await _context.Characters
+            .Include(c => c.Weapon)
+            .Include(c => c.Skills)
+            .Where(c => c.User.Id == GetUserId()).ToListAsync();
             if (dbCharacters.Count != 0)
             {
                 serviceResponse.Data = dbCharacters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
@@ -48,6 +51,8 @@ namespace dotnet5_rpg.Services.CharacterService
         {
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
             var dbCharacter = await _context.Characters
+            .Include(c => c.Weapon)
+            .Include(c => c.Skills)
             .FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
             if (dbCharacter != null)
             {
@@ -64,7 +69,8 @@ namespace dotnet5_rpg.Services.CharacterService
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             Character characterNew = _mapper.Map<Character>(character);
-            characterNew.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
+            characterNew.User = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == GetUserId());
 
             await _context.Characters.AddAsync(characterNew);
             await _context.SaveChangesAsync();
@@ -80,6 +86,8 @@ namespace dotnet5_rpg.Services.CharacterService
             try
             {
                 var obj = await _context.Characters
+                .Include(c => c.Weapon)
+                .Include(c => c.Skills)
                 .Include(c => c.User)
                 .FirstOrDefaultAsync(c => c.Id == updateCharacter.Id);
                 
@@ -113,6 +121,8 @@ namespace dotnet5_rpg.Services.CharacterService
             try
             {
                 var obj = await _context.Characters
+                .Include(c => c.Weapon)
+                .Include(c => c.Skills)
                 .FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
                 if (obj != null)
                 {
@@ -130,6 +140,40 @@ namespace dotnet5_rpg.Services.CharacterService
 
             }
             catch (Exception ex)
+            {
+                serviceResponse.Success = false;
+                serviceResponse.Message = ex.Message;
+            }
+            return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<GetCharacterDto>> AddCharacterSkill(AddCharacterSkillDto addCharacterSkill)
+        {
+            var serviceResponse = new ServiceResponse<GetCharacterDto>();
+            try
+            {
+                var characterInDb = await _context.Characters
+                .Include(c => c.Weapon)
+                .Include(c => c.Skills)
+                .FirstOrDefaultAsync(c => c.Id == addCharacterSkill.CharacterId && c.User.Id == GetUserId());
+
+                if(characterInDb == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "Character not found.";
+                    return serviceResponse;
+                }
+                var skill = await _context.Skills.FirstOrDefaultAsync(c => c.Id == addCharacterSkill.SkillId);
+                if(skill == null)
+                {
+                    serviceResponse.Success = false;
+                    serviceResponse.Message = "Skill not found.";
+                }
+                characterInDb.Skills.Add(skill);
+                await _context.SaveChangesAsync();
+                serviceResponse.Data = _mapper.Map<GetCharacterDto>(characterInDb);
+            }
+            catch(Exception ex)
             {
                 serviceResponse.Success = false;
                 serviceResponse.Message = ex.Message;
