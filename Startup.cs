@@ -19,6 +19,7 @@ using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.AspNetCore.Http;
 using dotnet5_rpg.Services.WeaponService;
+using dotnet5_rpg.Services.FightService;
 
 namespace dotnet5_rpg
 {
@@ -66,7 +67,8 @@ namespace dotnet5_rpg
                     };
                 });
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddScoped<IWeaponService,WeaponService>();
+            services.AddScoped<IWeaponService, WeaponService>();
+            services.AddScoped<IFightService, FightService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
