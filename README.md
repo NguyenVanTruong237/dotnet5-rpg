@@ -6,7 +6,7 @@
 - ServiceResponse 
 - Entity framework With One-To-One, One-To-Many, Many-To-Many Relationships (code first)
 - Using Dto With Auto Mapper
-- Register, Login User with Hash, Salt Password (Repository Pattern)
+- Register, Login User with Hash, Salt Password, Role (Repository Pattern)
 - Authorize User With Json Web Token (JWT)
 ------------------------------------
 - CRUD Character, Skill, Weapon
