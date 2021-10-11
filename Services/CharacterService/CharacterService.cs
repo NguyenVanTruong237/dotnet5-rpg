@@ -28,14 +28,18 @@ namespace dotnet5_rpg.Services.CharacterService
 
         public int GetUserId() => int.Parse(_httpContextAccessor.HttpContext.User
                     .FindFirstValue(ClaimTypes.NameIdentifier));
+        public string GetUserRole() => _httpContextAccessor.HttpContext.User
+                    .FindFirstValue(ClaimTypes.Role);
 
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-            var dbCharacters = await _context.Characters
-            .Include(c => c.Weapon)
-            .Include(c => c.Skills)
-            .Where(c => c.User.Id == GetUserId()).ToListAsync();
+            var dbCharacters =  GetUserRole().Equals("Admin") ? 
+                await _context.Characters.ToListAsync() :
+                await _context.Characters
+                    .Include(c => c.Weapon)
+                    .Include(c => c.Skills)
+                    .Where(c => c.User.Id == GetUserId()).ToListAsync();
             if (dbCharacters.Count != 0)
             {
                 serviceResponse.Data = dbCharacters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
@@ -50,10 +54,12 @@ namespace dotnet5_rpg.Services.CharacterService
         public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
         {
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
-            var dbCharacter = await _context.Characters
-            .Include(c => c.Weapon)
-            .Include(c => c.Skills)
-            .FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
+            var dbCharacter = GetUserRole().Equals("Admin") ?
+                await _context.Characters.FirstOrDefaultAsync(c => c.Id == id) :
+                await _context.Characters
+                    .Include(c => c.Weapon)
+                    .Include(c => c.Skills)
+                    .FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
             if (dbCharacter != null)
             {
                 serviceResponse.Data = _mapper.Map<GetCharacterDto>(dbCharacter);
