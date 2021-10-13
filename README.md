@@ -2,8 +2,8 @@
 - .NET5 Web API
 - SQL Sever Management Studio
 ----------------------------------
-- CRUD (with service package)
-- ServiceResponse 
+- CRUD (Microservices)
+- ServiceResponse Generic 
 - Entity framework With One-To-One, One-To-Many, Many-To-Many Relationships (code first)
 - Using Dto With Auto Mapper
 - Register, Login User with Hash, Salt Password, Role (Repository Pattern)
